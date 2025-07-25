@@ -2,29 +2,41 @@ package com.example.payments.controller;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.payments.model.LoginRequest;
-import com.example.payments.model.User;
-import com.example.payments.service.UserService;
-
 @RestController
 @RequestMapping("/api")
 public class AuthController {
-    @Autowired private UserService userService;
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        User user = userService.login(req.getUsername(), req.getPassword())
-                               .orElseThrow(() -> new RuntimeException("Invalid username or password"));
-        return ResponseEntity.ok(Map.of(
-            "token", "dummy-jwt-token",
-            "user", Map.of("user_id", user.getUserId(), "username", user.getUsername())
-        ));
+    public ResponseEntity<String> nullPointerTest(@RequestBody Map<String, Object> payload) {
+        logger.info("Received /login request with payload: {}", payload);
+
+        try {
+            Object keyObject = payload.get("key");
+            if (keyObject == null) {
+                logger.warn("Key 'key' is missing or null in payload");
+                return ResponseEntity.badRequest().body("Missing required key: 'key'");
+            }
+
+            String testValue = keyObject.toString();  // safely convert to string
+            int length = testValue.length();
+
+            return ResponseEntity.ok("Length: " + length);
+        } catch (Exception e) {
+            logger.error("❌ Unexpected exception occurred in /login", e);
+            System.err.println("❌ Unexpected exception stack trace:");
+            e.printStackTrace(System.err);
+
+            return ResponseEntity.status(500).body("Error: Unexpected error occurred");
+        }
     }
 }
