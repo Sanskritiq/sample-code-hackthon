@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus; // Import HttpStatus
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,24 +22,24 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            // This will throw NullPointerException if 'key' is not present or null
             String testValue = (String) payload.get("key");
+
+            if (testValue == null) {
+                logger.warn("The 'key' field in the payload is missing or null for /api/login request.");
+                return ResponseEntity.badRequest().body("Error: 'key' field is missing or null in the request body.");
+            }
+
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
-        } catch (NullPointerException e) {
-            // Log to application logger
-            logger.error("❌ NullPointerException occurred in /login", e);
-
-            // Also log raw trace to stderr
-            System.err.println("❌ NullPointerException stack trace:");
+        } catch (ClassCastException e) {
+            logger.error("❌ ClassCastException occurred in /login: 'key' value is not a String", e);
+            System.err.println("❌ ClassCastException stack trace:");
             e.printStackTrace(System.err);
-
-            return ResponseEntity.status(500).body("Error: Null value encountered");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: 'key' value must be a string.");
         } catch (Exception e) {
             logger.error("❌ Unexpected exception occurred in /login", e);
             System.err.println("❌ Unexpected exception stack trace:");
             e.printStackTrace(System.err);
-
             return ResponseEntity.status(500).body("Error: Unexpected error occurred");
         }
     }
