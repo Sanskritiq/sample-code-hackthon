@@ -21,24 +21,29 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            // This will throw NullPointerException if 'key' is not present or null
-            String testValue = (String) payload.get("key");
+            // Retrieve the value for 'key'
+            Object keyValue = payload.get("key");
+
+            // Explicitly check for null
+            if (keyValue == null) {
+                logger.error("❌ 'key' is missing or null in the payload for /login request.");
+                return ResponseEntity.badRequest().body("Error: 'key' is required and cannot be null.");
+            }
+
+            // Attempt to cast and use the value
+            if (!(keyValue instanceof String)) {
+                logger.error("❌ ClassCastException occurred for 'key' in /login: value is not a String. Received type: {}", keyValue.getClass().getName());
+                return ResponseEntity.badRequest().body("Error: Value for 'key' must be a string.");
+            }
+
+            String testValue = (String) keyValue;
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
-        } catch (NullPointerException e) {
-            // Log to application logger
-            logger.error("❌ NullPointerException occurred in /login", e);
 
-            // Also log raw trace to stderr
-            System.err.println("❌ NullPointerException stack trace:");
-            e.printStackTrace(System.err);
-
-            return ResponseEntity.status(500).body("Error: Null value encountered");
-        } catch (Exception e) {
+        } catch (Exception e) { // Catch any other unexpected exceptions
             logger.error("❌ Unexpected exception occurred in /login", e);
             System.err.println("❌ Unexpected exception stack trace:");
             e.printStackTrace(System.err);
-
             return ResponseEntity.status(500).body("Error: Unexpected error occurred");
         }
     }
