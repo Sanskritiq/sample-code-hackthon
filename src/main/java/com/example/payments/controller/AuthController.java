@@ -21,8 +21,11 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            // This will throw NullPointerException if 'key' is not present or null
             String testValue = (String) payload.get("key");
+            if (testValue == null) {
+                logger.error("❌ 'key' is missing or null in the request payload.");
+                return ResponseEntity.badRequest().body("Error: 'key' is required and cannot be null.");
+            }
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
         } catch (NullPointerException e) {
