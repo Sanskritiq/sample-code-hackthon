@@ -20,9 +20,15 @@ public class AuthController {
     public ResponseEntity<String> nullPointerTest(@RequestBody Map<String, Object> payload) {
         logger.info("Received /login request with payload: {}", payload);
 
+        String testValue = (String) payload.get("key");
+
+        // Check for null before attempting to use the string
+        if (testValue == null) {
+            logger.warn("Received /login request with missing or null 'key' in payload.");
+            return ResponseEntity.badRequest().body("Error: 'key' parameter is missing or null in the request payload.");
+        }
+
         try {
-            // This will throw NullPointerException if 'key' is not present or null
-            String testValue = (String) payload.get("key");
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
         } catch (NullPointerException e) {
