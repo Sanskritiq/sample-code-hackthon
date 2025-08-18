@@ -21,20 +21,21 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            // This will throw NullPointerException if 'key' is not present or null
             String testValue = (String) payload.get("key");
-            int length = testValue.length();
+            int length;
+
+            // Add null check for testValue
+            if (testValue != null) {
+                length = testValue.length();
+            } else {
+                // Handle the case where 'key' is not present or its value is null
+                logger.warn("Value for 'key' in payload is null or not found. Returning length as 0 or handle as appropriate.");
+                length = 0; // Or throw a more specific client-side error, e.g., 400 Bad Request
+                // For example: return ResponseEntity.badRequest().body("Error: 'key' is required in the payload.");
+            }
+
             return ResponseEntity.ok("Length: " + length);
-        } catch (NullPointerException e) {
-            // Log to application logger
-            logger.error("❌ NullPointerException occurred in /login", e);
-
-            // Also log raw trace to stderr
-            System.err.println("❌ NullPointerException stack trace:");
-            e.printStackTrace(System.err);
-
-            return ResponseEntity.status(500).body("Error: Null value encountered");
-        } catch (Exception e) {
+        } catch (Exception e) { // Catch general Exception as NPE is now handled explicitly
             logger.error("❌ Unexpected exception occurred in /login", e);
             System.err.println("❌ Unexpected exception stack trace:");
             e.printStackTrace(System.err);
