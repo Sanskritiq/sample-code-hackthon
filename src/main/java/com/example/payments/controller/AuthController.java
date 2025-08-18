@@ -1,6 +1,7 @@
 package com.example.payments.controller;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,26 +22,21 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            String testValue = (String) payload.get("key");
+            String testValue = Optional.ofNullable(payload.get("key"))
+                                 .map(Object::toString)
+                                 .orElse(null);
 
-            // Add null check here
             if (testValue == null) {
-                logger.error("❌ 'key' is missing or null in the request payload for /login");
-                return ResponseEntity.status(400).body("Error: 'key' parameter is missing or null");
+                logger.warn("Key 'key' not found or is null in the payload.");
+                return ResponseEntity.badRequest().body("Error: 'key' is required and cannot be null.");
             }
-
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
-        } catch (NullPointerException e) { // This catch block might become redundant if null check handles the case
-            logger.error("❌ NullPointerException occurred in /login", e);
-            System.err.println("❌ NullPointerException stack trace:");
-            e.printStackTrace(System.err);
-            return ResponseEntity.status(500).body("Error: Null value encountered");
         } catch (Exception e) {
-            logger.error("❌ Unexpected exception occurred in /login", e);
+            logger.error("❌ An unexpected exception occurred in /login", e);
             System.err.println("❌ Unexpected exception stack trace:");
             e.printStackTrace(System.err);
-            return ResponseEntity.status(500).body("Error: Unexpected error occurred");
+            return ResponseEntity.status(500).body("Error: An unexpected error occurred");
         }
     }
 }
