@@ -21,20 +21,14 @@ public class AuthController {
         logger.info("Received /login request with payload: {}", payload);
 
         try {
-            // This will throw NullPointerException if 'key' is not present or null
             String testValue = (String) payload.get("key");
+            if (testValue == null) {
+                logger.warn("Received /login request with missing or null 'key' in payload. Returning bad request.");
+                return ResponseEntity.badRequest().body("Error: 'key' parameter is missing or null.");
+            }
             int length = testValue.length();
             return ResponseEntity.ok("Length: " + length);
-        } catch (NullPointerException e) {
-            // Log to application logger
-            logger.error("❌ NullPointerException occurred in /login", e);
-
-            // Also log raw trace to stderr
-            System.err.println("❌ NullPointerException stack trace:");
-            e.printStackTrace(System.err);
-
-            return ResponseEntity.status(500).body("Error: Null value encountered");
-        } catch (Exception e) {
+        } catch (Exception e) { // Catch generic Exception to handle other potential issues gracefully
             logger.error("❌ Unexpected exception occurred in /login", e);
             System.err.println("❌ Unexpected exception stack trace:");
             e.printStackTrace(System.err);
